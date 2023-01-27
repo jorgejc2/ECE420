@@ -14,7 +14,7 @@ public class StepDetector {
     /* Parameters */
     private final long SEC_TO_MS = 1000;
     private final float ACCEL_THRESHOLD = 1f;
-    private final long MIN_TIME_BETWEEN_STEPS = Math.round(SEC_TO_MS * 0.2);
+    private final long MIN_TIME_BETWEEN_STEPS = Math.round(SEC_TO_MS * 0.2); // should just be 200
 
     /* State variables */
     private long timeSinceLastStep;
