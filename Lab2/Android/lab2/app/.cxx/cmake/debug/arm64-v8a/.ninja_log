@@ -1,0 +1,18 @@
+# ninja log v5
+15	139	696975162	CMakeFiles/echo.dir/kiss_fft/kiss_fft.c.o	b410e125f70656ad
+7	304	696975163	CMakeFiles/echo.dir/ece420_lib.cpp.o	5abe3d1c8a4bcfc7
+28	333	696975163	CMakeFiles/echo.dir/ece420_main.cpp.o	4d2349ac5d2f70e1
+36	334	696975163	CMakeFiles/echo.dir/audio_common.cpp.o	fc18b57b9b922ff
+11	345	696975163	CMakeFiles/echo.dir/audio_player.cpp.o	b27c9199573721b5
+21	356	696975163	CMakeFiles/echo.dir/audio_recorder.cpp.o	1c72ebdeef933072
+1	363	696975163	CMakeFiles/echo.dir/debug_utils.cpp.o	80eaf80489fa2ee4
+42	378	696975163	CMakeFiles/echo.dir/audio_main.cpp.o	ad9212e9efc29730
+378	491	696975163	C:/Users/flaco/Documents/ClassRepos/ECE420/Lab2/Android/lab2/app/build/intermediates/cmake/debug/obj/arm64-v8a/libecho.so	88cd326b04d964f8
+2	231	696980834	CMakeFiles/echo.dir/ece420_main.cpp.o	4d2349ac5d2f70e1
+231	321	696980834	C:/Users/flaco/Documents/ClassRepos/ECE420/Lab2/Android/lab2/app/build/intermediates/cmake/debug/obj/arm64-v8a/libecho.so	88cd326b04d964f8
+2	209	696981142	CMakeFiles/echo.dir/ece420_main.cpp.o	4d2349ac5d2f70e1
+210	297	696981143	C:/Users/flaco/Documents/ClassRepos/ECE420/Lab2/Android/lab2/app/build/intermediates/cmake/debug/obj/arm64-v8a/libecho.so	88cd326b04d964f8
+3	484	696993653	CMakeFiles/echo.dir/ece420_main.cpp.o	4d2349ac5d2f70e1
+484	595	696993653	C:/Users/flaco/Documents/ClassRepos/ECE420/Lab2/Android/lab2/app/build/intermediates/cmake/debug/obj/arm64-v8a/libecho.so	88cd326b04d964f8
+2	228	696994110	CMakeFiles/echo.dir/ece420_main.cpp.o	4d2349ac5d2f70e1
+228	325	696994110	C:/Users/flaco/Documents/ClassRepos/ECE420/Lab2/Android/lab2/app/build/intermediates/cmake/debug/obj/arm64-v8a/libecho.so	88cd326b04d964f8

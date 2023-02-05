@@ -1,0 +1,1 @@
+C:\Users\flaco\Documents\ClassRepos\ECE420\Lab2\Android\lab2\app\src\main\cpp\CMakeLists.txt
