@@ -103,7 +103,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     isWritingFft = false;
 
     gettimeofday(&end, NULL);
-    LOGD("Time delay: %ld us",  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
+    LOGD("Time delay: %ld us, buf size %d, cap size %d",  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)), dataBuf->size_,dataBuf->cap_);
 }
 
 void generateHamming() {
