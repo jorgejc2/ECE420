@@ -267,7 +267,9 @@ public class MainActivity extends Activity
             // with a FloatBuffer allows direct memory sharing, versus having to copy to some
             // intermediate location first.
             // http://stackoverflow.com/questions/10697161/why-floatbuffer-instead-of-float
-            FloatBuffer buffer = ByteBuffer.allocateDirect(FRAME_SIZE * 4)
+
+            /* multiply by 2 because for 50% overlap, we will now publish two FFT's per call */
+            FloatBuffer buffer = ByteBuffer.allocateDirect(FRAME_SIZE * 4 * 2)
                     .order(ByteOrder.LITTLE_ENDIAN)
                     .asFloatBuffer();
 
@@ -280,41 +282,44 @@ public class MainActivity extends Activity
         }
 
         protected void onProgressUpdate(FloatBuffer... newDisplayUpdate) {
-            int r,g,b;
+            int r, g, b;
 
             // emulates a scrolling window
-            Rect srcRect = new Rect(0, -(-1), bitmap.getWidth(), bitmap.getHeight());
+            Rect srcRect = new Rect(0, -(-2), bitmap.getWidth(), bitmap.getHeight());
             Rect destRect = new Rect(srcRect);
-            destRect.offset(0, -1);
+            destRect.offset(0, -2);
             canvas.drawBitmap(bitmap, srcRect, destRect, null);
 
             // update latest column with new values which need to be between 0.0 and 1.0
-            for(int i=0;i < newDisplayUpdate[0].capacity();i++) {
-                double val = newDisplayUpdate[0].get();
+            /* publish to graph twice since buffer will now contain two FFT's */
+            for (int j = 2; j > 0; j--) {
+                for (int i = 0; i < newDisplayUpdate[0].capacity() / 2; i++) {
+                    double val = newDisplayUpdate[0].get();
 
-                // simple linear RYGCB colormap
-                if(val <= 0.25) {
-                    r = 0;
-                    b = 255;
-                    g = (int)(4*val*255);
-                } else if(val <= 0.5) {
-                    r = 0;
-                    g = 255;
-                    b = (int)((1-4*(val-0.25))*255);
-                } else if(val <= 0.75) {
-                    g = 255;
-                    b = 0;
-                    r = (int)(4*(val-0.5)*255);
-                } else {
-                    r = 255;
-                    b = 0;
-                    g = (int)((1-4*(val-0.75))*255);
+                    // simple linear RYGCB colormap
+                    if (val <= 0.25) {
+                        r = 0;
+                        b = 255;
+                        g = (int) (4 * val * 255);
+                    } else if (val <= 0.5) {
+                        r = 0;
+                        g = 255;
+                        b = (int) ((1 - 4 * (val - 0.25)) * 255);
+                    } else if (val <= 0.75) {
+                        g = 255;
+                        b = 0;
+                        r = (int) (4 * (val - 0.5) * 255);
+                    } else {
+                        r = 255;
+                        b = 0;
+                        g = (int) ((1 - 4 * (val - 0.75)) * 255);
+                    }
+
+                    // set color with constant alpha
+                    paint.setColor(Color.argb(255, r, g, b));
+                    // paint corresponding area
+                    canvas.drawRect(i, BITMAP_HEIGHT - j, i + 1, BITMAP_HEIGHT - (j-1), paint);
                 }
-
-                // set color with constant alpha
-                paint.setColor(Color.argb(255, r, g, b));
-                // paint corresponding area
-                canvas.drawRect(i, BITMAP_HEIGHT-1, i+1, BITMAP_HEIGHT, paint);
             }
 
             newDisplayUpdate[0].rewind();

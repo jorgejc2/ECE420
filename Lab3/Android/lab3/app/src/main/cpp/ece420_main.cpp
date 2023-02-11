@@ -20,17 +20,20 @@ Java_com_ece420_lab3_MainActivity_getFftBuffer(JNIEnv *env, jclass, jobject buff
 #define FFT_SIZE (FRAME_SIZE * ZP_FACTOR)
 // Variable to store final FFT output
 #define PI 3.141592653589793
-float fftOut[FFT_SIZE] = {};
+float fftOut[FRAME_SIZE*2] = {}; // publishing 2 FFTs
 bool isWritingFft = false;
 
 // initialize a hamming window once to save comutation time
 float hammingWindow[FRAME_SIZE];
 bool hammingWindowInitialized = false;
 
+float prev_samples[FRAME_SIZE / 2] = {}; // initialize previous samples to 0
+
 // initalize kiss_fft parameters
 kiss_fft_cfg kcfg;
 kiss_fft_cpx fin[FFT_SIZE];
-kiss_fft_cpx fout[FFT_SIZE];
+kiss_fft_cpx fout_1[FFT_SIZE]; // overlapped fft
+kiss_fft_cpx fout_2[FFT_SIZE]; // only current samples fft
 
 
 // function declarations
@@ -65,7 +68,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     if (!hammingWindowInitialized) {
         /* fill in Hamming array */
         generateHamming();
-        /* zero pad fin */
+        /* zero pad fin starting from idx 1024*/
         for (int i = FRAME_SIZE; i < FFT_SIZE; i++) {
             fin[i].r = 0.0;
             fin[i].i = 0.0;
@@ -74,28 +77,60 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         hammingWindowInitialized = true;
     }
 
-    /* apply window */
+    /* compute first fft which uses half of the previous samples and half of the new samples */
+
+    /* load samples and apply window */
+    for (int i = 0; i < FRAME_SIZE / 2; i++) {
+        fin[i].r = prev_samples[i] * hammingWindow[i];
+        fin[i].i = 0.0;
+        fin[i + (FRAME_SIZE/2)].r = bufferIn[i] * hammingWindow[i + (FRAME_SIZE/2)];
+        fin[i + (FRAME_SIZE/2)].i = 0.0;
+    }
+
+    /* compute first FFT */
+    kiss_fft(kcfg,fin,fout_1);
+
+    /* compute second fft which only uses the current samples */
+
+    /* load samples, update prev_samples, and apply window */
     for (int i = 0; i < FRAME_SIZE; i++) {
+        /* update prev_samples */
+        if (i < (FRAME_SIZE/2))
+            prev_samples[i] = bufferIn[i + (FRAME_SIZE/2)];
+        /* fill in fft in buffer and apply window */
         fin[i].r = bufferIn[i] * hammingWindow[i];
         fin[i].i = 0.0;
     }
 
-    /* compute FFT */
-    kiss_fft(kcfg,fin,fout);
+    /* compute second FFT */
+    kiss_fft(kcfg,fin,fout_2);
 
     // thread-safe
     isWritingFft = true;
     // Currently set everything to 0 or 1 so the spectrogram will just be blue and red stripped
+
+    /* write results of first fft */
     float max_val = 0.0;
     for (int i = 0; i < FRAME_SIZE; i++) {
-//        fftOut[i] = (i/20)%2;
-        fftOut[i] = log10(fout[i].r*fout[i].r + fout[i].i*fout[i].i);
+        fftOut[i] = log10(fout_1[i].r*fout_1[i].r + fout_1[i].i*fout_1[i].i);
         if (fftOut[i] > max_val)
             max_val = fftOut[i];
     }
-    /* linearly scale the values so that it is between 0 and 1 */
+    /* linearly scale the values so that it is between 0 and 1, also only write the real values back */
     for (int i = 0; i < FRAME_SIZE; i++) {
         fftOut[i] = fftOut[i] / max_val;
+    }
+
+    /* write result of second fft */
+    max_val = 0.0;
+    for (int i = 0; i < FRAME_SIZE; i++) {
+        fftOut[i + FRAME_SIZE] = log10(fout_2[i].r*fout_2[i].r + fout_2[i].i*fout_2[i].i);
+        if (fftOut[i + FRAME_SIZE] > max_val)
+            max_val = fftOut[i + FRAME_SIZE];
+    }
+    /* linearly scale the values so that it is between 0 and 1, also only write the real values back */
+    for (int i = 0; i < FRAME_SIZE; i++) {
+        fftOut[i + FRAME_SIZE] = fftOut[i + FRAME_SIZE] / max_val;
     }
 
     // ********************* END YOUR CODE HERE ************************* //
@@ -119,7 +154,7 @@ Java_com_ece420_lab3_MainActivity_getFftBuffer(JNIEnv *env, jclass, jobject buff
     // thread-safe, kinda
     while (isWritingFft) {}
     // We will only fetch up to FRAME_SIZE data in fftOut[] to draw on to the screen
-    for (int i = 0; i < FRAME_SIZE; i++) {
+    for (int i = 0; i < FRAME_SIZE*2; i++) {
         buffer[i] = fftOut[i];
     }
 }
