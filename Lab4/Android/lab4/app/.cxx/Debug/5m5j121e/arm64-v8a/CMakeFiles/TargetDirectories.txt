@@ -1,0 +1,3 @@
+C:/Users/flaco/Documents/ClassRepos/ECE420/Lab4/Android/lab4/app/.cxx/Debug/5m5j121e/arm64-v8a/CMakeFiles/echo.dir
+C:/Users/flaco/Documents/ClassRepos/ECE420/Lab4/Android/lab4/app/.cxx/Debug/5m5j121e/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/flaco/Documents/ClassRepos/ECE420/Lab4/Android/lab4/app/.cxx/Debug/5m5j121e/arm64-v8a/CMakeFiles/rebuild_cache.dir

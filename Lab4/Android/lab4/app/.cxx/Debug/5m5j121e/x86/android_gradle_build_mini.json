@@ -1,0 +1,28 @@
+{
+  "buildFiles": [
+    "C:\\Users\\flaco\\Documents\\ClassRepos\\ECE420\\Lab4\\Android\\lab4\\app\\src\\main\\cpp\\CMakeLists.txt",
+    "C:\\Users\\flaco\\Documents\\ClassRepos\\ECE420\\Lab4\\Android\\lab4\\app\\src\\main\\cpp\\ndk-stl-config.cmake"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\flaco\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\flaco\\Documents\\ClassRepos\\ECE420\\Lab4\\Android\\lab4\\app\\.cxx\\Debug\\5m5j121e\\x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\flaco\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\flaco\\Documents\\ClassRepos\\ECE420\\Lab4\\Android\\lab4\\app\\.cxx\\Debug\\5m5j121e\\x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "echo::@6890427a1f51a3e7e1df": {
+      "artifactName": "echo",
+      "abi": "x86",
+      "output": "C:\\Users\\flaco\\Documents\\ClassRepos\\ECE420\\Lab4\\Android\\lab4\\app\\build\\intermediates\\cxx\\Debug\\5m5j121e\\obj\\x86\\libecho.so",
+      "runtimeFiles": []
+    }
+  }
+}
