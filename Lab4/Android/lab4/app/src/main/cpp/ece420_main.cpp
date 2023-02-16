@@ -7,6 +7,7 @@
 #include "ece420_lib.h"
 #include "kiss_fft/kiss_fft.h"
 #include <cmath>
+#include <vector>
 
 // JNI Function
 extern "C" {
@@ -15,24 +16,24 @@ Java_com_ece420_lab4_MainActivity_getFreqUpdate(JNIEnv *env, jclass);
 }
 
 // Student Variables
-#define F_S 48000
+#define F_S 48000 // sampling rate
 #define FRAME_SIZE 1024
 #define VOICED_THRESHOLD 1000000000  // Find your own threshold
 float lastFreqDetected = -1;
 
 // initalize kiss_fft parameters
-kiss_fft_cfg kcfg_fft;
-kiss_fft_cfg kcfg_ifft;
-kiss_fft_cpx fin[FRAME_SIZE];
-kiss_fft_cpx fft_out[FRAME_SIZE]; // overlapped fft
-kiss_fft_cpx ifft_out[FRAME_SIZE];
-bool kiss_initialized = false;
-int peak_idx[6];
-float peak_threshold = 0.5;
+kiss_fft_cfg kcfg_fft; // configuration for conducting fft
+kiss_fft_cfg kcfg_ifft; // configuration for conducting ifft
+kiss_fft_cpx fin[FRAME_SIZE]; // input with samples for fft
+kiss_fft_cpx fft_out[FRAME_SIZE]; // output of fft and updated to be an input for ifft
+kiss_fft_cpx ifft_out[FRAME_SIZE]; // ifft output
+bool kiss_initialized = false; // must initialize cfg variables
+int peak_idx[6]; // number of peaks to be returned by multiple_peak_detection
+float peak_threshold = 0.5; // treshold for detecting peaks
 float f_ifft[FRAME_SIZE]; // real valued float from output of ifft
 
 bool isVoiced(const float* buffer, int len);
-int multiple_peak_detection(const float* buffIn, float* buffOut, int buffIn_len, int num_peaks, float threshold);
+int multiple_peak_detection(const float* buffIn, int* buffOut, int buffIn_len, int num_peaks, float threshold);
 
 void ece420ProcessFrame(sample_buf *dataBuf) {
     // Keep in mind, we only have 20ms to process each buffer!
@@ -72,12 +73,14 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     // write your determined frequency. If unvoiced, write -1.
     // ********************* START YOUR CODE HERE *********************** //
 
+    /* initialize kiss cfg variables */
     if (!kiss_initialized) {
         kcfg_fft = kiss_fft_alloc(FRAME_SIZE,0, nullptr, nullptr);
         kcfg_ifft = kiss_fft_alloc(FRAME_SIZE,1, nullptr, nullptr);
     }
 
-    bool voiced = isVoiced(bufferin, FRAME_SIZE);
+    /* find if voice was detected */
+    bool voiced = isVoiced(bufferIn, FRAME_SIZE);
 
     /* only want to do additional computations if the frame is voiced */
     if (voiced) {
@@ -102,18 +105,21 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 
         /* store only the realy parts of the ifft_out */
         for (int i = 0; i < FRAME_SIZE; i++)
-            f_ifft[i] = ifft_out[i];
+            f_ifft[i] = ifft_out[i].r;
 
+        /* find peaks */
         int num_peaks_detected = multiple_peak_detection(f_ifft, peak_idx, FRAME_SIZE, 6, peak_threshold);
 
         /* find maximum peak and use that to find l */
         int l = 0;
         float max_peak_val = -1;
         float curr_val;
-        for (int i = 1; i < 6; i++) {
+        /* skip the first peak since it leads to bad estimations */
+        for (int i = 1; i < num_peaks_detected; i++) {
             curr_val = f_ifft[peak_idx[i]];
+            /* check if current peak is the maximum from the list of peaks */
             if (curr_val > max_peak_val) {
-                l = i;
+                l = peak_idx[i];
                 max_peak_val = curr_val;
             }
         }
@@ -128,6 +134,18 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     LOGD("Time delay: %ld us",  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 }
 
+/*
+ * Description: Determines if a frame of samples contains a voice
+ * Inputs:
+ *      const float* buffer -- buffer of samples
+ *      int len -- length of the buffer
+ * Outputs:
+ *      None
+ * Returns:
+ *      bool voiced -- if the frame contains a voice
+ * Effects:
+ *      None
+ */
 bool isVoiced(const float* buffer, int len) {
     bool voiced = false;
 
@@ -142,21 +160,38 @@ bool isVoiced(const float* buffer, int len) {
     return voiced;
 }
 
-int multiple_peak_detection(const float* buffIn, float* buffOut, int buffIn_len, int num_peaks, float threshold) {
-    std::vector<int> thresh_indices;
+/*
+ * Description: Returns a list of indices in buffIn that correspond to local maximums based on a
+ * threshold
+ * Inputs:
+ *      const float* buffIn -- array of sample inputs
+ *      int buffInlen -- length of buffIn sample inputs
+ *      int num_peaks -- number of peaks to return in buffOut
+ *      float threshold -- threshold that peaks must cross
+ * Outputs:
+ *      int* buffOut -- array to write indices of local maximums into
+ * Returns:
+ *      int buffOut_size -- number of peaks returned, capped at num_peaks
+ * Effects:
+ *      uses std::vector which is inefficient and may be too slow for the thread
+ */
+int multiple_peak_detection(const float* buffIn, int* buffOut, int buffIn_len, int num_peaks, float threshold) {
+    std::vector<int> thresh_indices; // indices whose values meet the threshold
     /* find indices of buff in that meet the threshold */
     for (int i = 0; i < buffIn_len; i++) {
         if (buffIn[i] > threshold)
-            thresh_indices.append(i);
+            thresh_indices.push_back(i);
     }
 
+    /* boundaries to look for local maximums */
     int curr_start = thresh_indices[0];
     int curr_end = -1;
 
+    /* number of peaks found thus far */
     int buffOut_size = 0;
 
-    int idx;
-    for (int i = 1; i < thresh_indicies.size(); i++) {
+    int idx; // current index from thresh_indices
+    for (int i = 1; i < thresh_indices.size(); i++) {
         /* break if already found desired number of peaks */
         if (buffOut_size == num_peaks)
             break;
@@ -173,7 +208,7 @@ int multiple_peak_detection(const float* buffIn, float* buffOut, int buffIn_len,
         /* find max value from previous slice if discontinuity is found,
          * and initialize start and end idx for next slice
          */
-        if ((curr_end > -1) && (idx - 1 == curr_end)) {
+        if ((curr_end > -1) && (idx - 1 != curr_end)) {
             /* get idx of peak and place it into user buffer */
             buffOut[buffOut_size] = findMaxArrayIdx(buffIn, curr_start, curr_end);
             ++buffOut_size;

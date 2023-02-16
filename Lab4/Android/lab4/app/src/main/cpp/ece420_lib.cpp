@@ -11,7 +11,7 @@ float getHanningCoef(int N, int idx) {
     return (float) (0.5 * (1.0 - cos(2.0 * M_PI * idx / (N - 1))));
 }
 
-int findMaxArrayIdx(float *array, int minIdx, int maxIdx) {
+int findMaxArrayIdx(const float *array, int minIdx, int maxIdx) {
     int ret_idx = minIdx;
 
     for (int i = minIdx; i < maxIdx; i++) {
@@ -23,7 +23,7 @@ int findMaxArrayIdx(float *array, int minIdx, int maxIdx) {
     return ret_idx;
 }
 
-int findClosestIdxInArray(float *array, float value, int minIdx, int maxIdx) {
+int findClosestIdxInArray(const float *array, float value, int minIdx, int maxIdx) {
     int retIdx = minIdx;
     float bestResid = abs(array[retIdx] - value);
 

@@ -10,7 +10,7 @@
 #include <vector>
 
 float getHanningCoef(int N, int idx);
-int findMaxArrayIdx(float *array, int minIdx, int maxIdx);
+int findMaxArrayIdx(const float *array, int minIdx, int maxIdx);
 int findClosestIdxInArray(float *array, float value, int minIdx, int maxIdx);
 int findClosestInVector(std::vector<int> vector, float value, int minIdx, int maxIdx);
 

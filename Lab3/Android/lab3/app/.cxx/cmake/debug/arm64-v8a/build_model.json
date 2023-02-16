@@ -174,7 +174,6 @@
       "project": {
         "compilerSettingsCacheFolder": "C:\\Users\\flaco\\Documents\\ClassRepos\\ECE420\\Lab3\\Android\\lab3\\.cxx",
         "cxxFolder": "C:\\Users\\flaco\\Documents\\ClassRepos\\ECE420\\Lab3\\Android\\lab3\\.cxx",
-        "ideBuildTargetAbi": "arm64-v8a,armeabi-v7a,armeabi",
         "isBuildOnlyTargetAbiEnabled": true,
         "isCmakeBuildCohabitationEnabled": false,
         "isNativeCompilerSettingsCacheEnabled": false,
@@ -198,7 +197,10 @@
     "objFolder": "C:\\Users\\flaco\\Documents\\ClassRepos\\ECE420\\Lab3\\Android\\lab3\\app\\build\\intermediates\\cmake\\debug\\obj",
     "variantName": "debug",
     "validAbiList": [
-      "ARM64_V8A"
+      "ARMEABI_V7A",
+      "ARM64_V8A",
+      "X86",
+      "X86_64"
     ],
     "prefabDirectory": "C:\\Users\\flaco\\Documents\\ClassRepos\\ECE420\\Lab3\\Android\\lab3\\app\\.cxx\\cmake\\debug\\prefab",
     "prefabPackageDirectoryList": []
