@@ -18,20 +18,22 @@ Java_com_ece420_lab4_MainActivity_getFreqUpdate(JNIEnv *env, jclass);
 // Student Variables
 #define F_S 48000 // sampling rate
 #define FRAME_SIZE 1024
-#define VOICED_THRESHOLD 1000000000  // Find your own threshold
+#define VOICED_THRESHOLD 2000000000  // Find your own threshold
 float lastFreqDetected = -1;
 
 // initalize kiss_fft parameters
+#define  NUM_PEAKS 12
 kiss_fft_cfg kcfg_fft; // configuration for conducting fft
 kiss_fft_cfg kcfg_ifft; // configuration for conducting ifft
 kiss_fft_cpx fin[FRAME_SIZE]; // input with samples for fft
 kiss_fft_cpx fft_out[FRAME_SIZE]; // output of fft and updated to be an input for ifft
 kiss_fft_cpx ifft_out[FRAME_SIZE]; // ifft output
 bool kiss_initialized = false; // must initialize cfg variables
-int peak_idx[6]; // number of peaks to be returned by multiple_peak_detection
+int peak_idx[NUM_PEAKS]; // number of peaks to be returned by multiple_peak_detection
 float peak_threshold = 0.5; // treshold for detecting peaks
 float f_ifft[FRAME_SIZE]; // real valued float from output of ifft
 
+/* function declarations */
 bool isVoiced(const float* buffer, int len);
 int multiple_peak_detection(const float* buffIn, int* buffOut, int buffIn_len, int num_peaks, float threshold);
 
@@ -77,6 +79,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     if (!kiss_initialized) {
         kcfg_fft = kiss_fft_alloc(FRAME_SIZE,0, nullptr, nullptr);
         kcfg_ifft = kiss_fft_alloc(FRAME_SIZE,1, nullptr, nullptr);
+        kiss_initialized = true;
     }
 
     /* find if voice was detected */
@@ -103,12 +106,12 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         /* perform ifft */
         kiss_fft(kcfg_ifft, fft_out, ifft_out);
 
-        /* store only the realy parts of the ifft_out */
+        /* store only the real parts of the ifft_out */
         for (int i = 0; i < FRAME_SIZE; i++)
             f_ifft[i] = ifft_out[i].r;
 
         /* find peaks */
-        int num_peaks_detected = multiple_peak_detection(f_ifft, peak_idx, FRAME_SIZE, 6, peak_threshold);
+        int num_peaks_detected = multiple_peak_detection(f_ifft, peak_idx, FRAME_SIZE, NUM_PEAKS, peak_threshold);
 
         /* find maximum peak and use that to find l */
         int l = 0;
@@ -127,7 +130,11 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         /* update fundamental frequency */
         if (l != 0)
             lastFreqDetected = F_S / l;
+        else
+            lastFreqDetected = -1;
     }
+    else
+        lastFreqDetected = -1;
 
     // ********************* END YOUR CODE HERE ************************* //
     gettimeofday(&end, NULL);
@@ -204,11 +211,10 @@ int multiple_peak_detection(const float* buffIn, int* buffOut, int buffIn_len, i
             curr_end = idx;
             continue;
         }
-
         /* find max value from previous slice if discontinuity is found,
          * and initialize start and end idx for next slice
          */
-        if ((curr_end > -1) && (idx - 1 != curr_end)) {
+        else if ((curr_end > -1) && (idx - 1 != curr_end)) {
             /* get idx of peak and place it into user buffer */
             buffOut[buffOut_size] = findMaxArrayIdx(buffIn, curr_start, curr_end);
             ++buffOut_size;
