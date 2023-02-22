@@ -29,7 +29,7 @@ int newEpochIdx = FRAME_SIZE;
 int FREQ_NEW_ANDROID = 300;
 int FREQ_NEW = 300;
 
-bool lab5PitchShift(float *bufferIn) {
+bool lab5PitchShift(float *bufferIn_temp) {
     // Lab 4 code is condensed into this function
     int periodLen = detectBufferPeriod(bufferIn);
     float freq = ((float) F_S) / periodLen;
@@ -60,30 +60,30 @@ bool lab5PitchShift(float *bufferIn) {
         for (int i = newEpochIdx; i < 2 * FRAME_SIZE; i += new_epoch_spacing) {
             /* can optimize this by keeping track of the last epoch we mapped to later */
             int curr_epoch_idx = findClosestInVector(epochLocations, i, 0, epochLocations.size());
-
+            int curr_epoch = epochLocations[curr_epoch_idx];
             /* boundary check and find left and right indices for calculating p0 */
-            int left_epoch_idx, right_epoch_idx;
+            int left_epoch;
+            int right_epoch;
             if (curr_epoch_idx == 0)
-                left_epoch_idx = 0;
+                left_epoch = 0;
             else
-                left_epoch_idx = epochLocations[curr_epoch_idx - 1];
+                left_epoch = epochLocations[curr_epoch_idx - 1];
             if (curr_epoch_idx == epochLocations.size() - 1)
-                right_epoch_idx = BUFFER_SIZE - 1;
+                right_epoch = BUFFER_SIZE - 1;
             else
-                right_epoch_idx = epochLocations[curr_epoch_idx + 1];
+                right_epoch = epochLocations[curr_epoch_idx + 1];
 
             /* calculate p0 */
-            int p0 = (right_epoch_idx - left_epoch_idx) / 2;
+            int p0 = (right_epoch - left_epoch) / 2;
 
             int window_len = 2*p0 + 1;
-//            float windowed_input[window_len];
             /* apply window to input centered around original epoch, and add it to output centered at new epoch */
             for (int j = 0; j < window_len; j++) {
                 int windowed_idx = j; // index into window
-                int buffer_in_idx = (curr_epoch_idx - p0) + j; // data to use centered around original epoch
-                int buffer_out_idx = (i = p0) + j; // location to add windowed data centered around new epoch
+                int buffer_in_idx = (curr_epoch - p0) + j; // data to use centered around original epoch
+                int buffer_out_idx = (i - p0) + j; // location to add windowed data centered around new epoch
                 /* only sum overlapped data if indices are valid */
-                if (buffer_out_idx < BUFFER_SIZE && buffer_in_idx < BUFFER_SIZE)
+                if ((buffer_out_idx < BUFFER_SIZE && buffer_out_idx > 0) && (buffer_in_idx < BUFFER_SIZE && buffer_in_idx > 0))
                     bufferOut[buffer_out_idx] += getHanningCoef(window_len, windowed_idx) * bufferIn[buffer_in_idx];
             }
 
