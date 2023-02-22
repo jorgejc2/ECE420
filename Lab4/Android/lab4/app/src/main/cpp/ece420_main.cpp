@@ -18,11 +18,11 @@ Java_com_ece420_lab4_MainActivity_getFreqUpdate(JNIEnv *env, jclass);
 // Student Variables
 #define F_S 48000 // sampling rate
 #define FRAME_SIZE 1024
-#define VOICED_THRESHOLD 2000000000  // Find your own threshold
+#define VOICED_THRESHOLD 1000000000  // Find your own threshold
 float lastFreqDetected = -1;
 
 // initalize kiss_fft parameters
-#define  NUM_PEAKS 12
+#define  NUM_PEAKS 30
 kiss_fft_cfg kcfg_fft; // configuration for conducting fft
 kiss_fft_cfg kcfg_ifft; // configuration for conducting ifft
 kiss_fft_cpx fin[FRAME_SIZE]; // input with samples for fft
@@ -118,14 +118,15 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         float max_peak_val = -1;
         float curr_val;
         /* skip the first peak since it leads to bad estimations */
-        for (int i = 1; i < num_peaks_detected; i++) {
-            curr_val = f_ifft[peak_idx[i]];
-            /* check if current peak is the maximum from the list of peaks */
-            if (curr_val > max_peak_val) {
-                l = peak_idx[i];
-                max_peak_val = curr_val;
-            }
-        }
+//        for (int i = 1; i < num_peaks_detected; i++) {
+//            curr_val = f_ifft[peak_idx[i]];
+//            /* check if current peak is the maximum from the list of peaks */
+//            if (curr_val > max_peak_val) {
+//                l = peak_idx[i];
+//                max_peak_val = curr_val;
+//            }
+//        }
+        l = peak_idx[1];
 
         /* update fundamental frequency */
         if (l != 0)
