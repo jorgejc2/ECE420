@@ -1,0 +1,8 @@
+include ':app'
+include ':openCVLibrary331dev'
+include ':openCVLibrary340dev'
+include ':openCVLibrary340dev'
+include ':openCVLibrary340dev'
+include ':openCVLibrary340dev'
+include ':openCVLibrary340dev'
+include ':openCVLibrary340dev'
