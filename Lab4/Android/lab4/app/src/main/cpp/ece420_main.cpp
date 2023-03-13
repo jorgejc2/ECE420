@@ -23,15 +23,6 @@ float lastFreqDetected = -1;
 
 // initalize kiss_fft parameters
 #define  NUM_PEAKS 30
-kiss_fft_cfg kcfg_fft; // configuration for conducting fft
-kiss_fft_cfg kcfg_ifft; // configuration for conducting ifft
-kiss_fft_cpx fin[FRAME_SIZE]; // input with samples for fft
-kiss_fft_cpx fft_out[FRAME_SIZE]; // output of fft and updated to be an input for ifft
-kiss_fft_cpx ifft_out[FRAME_SIZE]; // ifft output
-bool kiss_initialized = false; // must initialize cfg variables
-int peak_idx[NUM_PEAKS]; // number of peaks to be returned by multiple_peak_detection
-float peak_threshold = 0.5; // treshold for detecting peaks
-float f_ifft[FRAME_SIZE]; // real valued float from output of ifft
 
 /* function declarations */
 bool isVoiced(const float* buffer, int len);
@@ -75,64 +66,62 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     // write your determined frequency. If unvoiced, write -1.
     // ********************* START YOUR CODE HERE *********************** //
 
-    /* initialize kiss cfg variables */
-    if (!kiss_initialized) {
-        kcfg_fft = kiss_fft_alloc(FRAME_SIZE,0, nullptr, nullptr);
-        kcfg_ifft = kiss_fft_alloc(FRAME_SIZE,1, nullptr, nullptr);
-        kiss_initialized = true;
-    }
-
     /* find if voice was detected */
     bool voiced = isVoiced(bufferIn, FRAME_SIZE);
 
     /* only want to do additional computations if the frame is voiced */
     if (voiced) {
 
-        /* fill in fft in */
+        // FFT is done using Kiss FFT engine. Remember to free(cfg) on completion
+        kiss_fft_cfg cfg = kiss_fft_alloc(FRAME_SIZE, false, 0, 0);
+
+        kiss_fft_cpx buffer_in[FRAME_SIZE];
+        kiss_fft_cpx buffer_fft[FRAME_SIZE];
+
         for (int i = 0; i < FRAME_SIZE; i++) {
-            fin[i].r = bufferIn[i];
-            fin[i].i = 0.0;
+            buffer_in[i].r = bufferIn[i];
+            buffer_in[i].i = 0;
         }
 
-        /* compute fft */
-        kiss_fft(kcfg_fft, fin, fft_out);
+        kiss_fft(cfg, buffer_in, buffer_fft);
+        free(cfg);
 
-        /* perform conjugate multiplication */
+
+        // Autocorrelation is given by:
+        // autoc = ifft(fft(x) * conj(fft(x))
+        //
+        // Also, (a + jb) (a - jb) = a^2 + b^2
+        kiss_fft_cfg cfg_ifft = kiss_fft_alloc(FRAME_SIZE, true, 0, 0);
+
+        kiss_fft_cpx multiplied_fft[FRAME_SIZE];
+        kiss_fft_cpx autoc_kiss[FRAME_SIZE];
+
         for (int i = 0; i < FRAME_SIZE; i++) {
-            fft_out[i].r = (fft_out[i].r * fft_out[i].r) + (fft_out[i].i * -fft_out[i].i);
-            fft_out[i].i = 0.0;
+            multiplied_fft[i].r = (buffer_fft[i].r * buffer_fft[i].r)
+                                  + (buffer_fft[i].i * buffer_fft[i].i);
+            multiplied_fft[i].i = 0;
         }
 
-        /* perform ifft */
-        kiss_fft(kcfg_ifft, fft_out, ifft_out);
+        kiss_fft(cfg_ifft, multiplied_fft, autoc_kiss);
+        free(cfg_ifft);
 
-        /* store only the real parts of the ifft_out */
-        for (int i = 0; i < FRAME_SIZE; i++)
-            f_ifft[i] = ifft_out[i].r;
+        // Move to a normal float array rather than a struct array of r/i components
+        float autoc[FRAME_SIZE];
+        for (int i = 0; i < FRAME_SIZE; i++) {
+            autoc[i] = autoc_kiss[i].r;
+        }
 
-        /* find peaks */
-        int num_peaks_detected = multiple_peak_detection(f_ifft, peak_idx, FRAME_SIZE, NUM_PEAKS, peak_threshold);
+        // We're only interested in pitches below 1000Hz.
+        // Why does this line guarantee we only identify pitches below 1000Hz?
+        int minIdx = F_S / 1000;
+        int maxIdx = FRAME_SIZE / 2;
 
-        /* find maximum peak and use that to find l */
-        int l = 0;
-        float max_peak_val = -1;
-        float curr_val;
-        /* skip the first peak since it leads to bad estimations */
-//        for (int i = 1; i < num_peaks_detected; i++) {
-//            curr_val = f_ifft[peak_idx[i]];
-//            /* check if current peak is the maximum from the list of peaks */
-//            if (curr_val > max_peak_val) {
-//                l = peak_idx[i];
-//                max_peak_val = curr_val;
-//            }
-//        }
-        l = peak_idx[1];
-
-        /* update fundamental frequency */
-        if (l != 0)
-            lastFreqDetected = F_S / l;
-        else
-            lastFreqDetected = -1;
+        int l = findMaxArrayIdx(autoc, minIdx, maxIdx);
+        lastFreqDetected = ((float) F_S) / l;
+//        if (l != 0)
+//            lastFreqDetected = F_S / l;
+//        else
+//            lastFreqDetected = -1;
     }
     else
         lastFreqDetected = -1;
