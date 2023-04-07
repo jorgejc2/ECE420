@@ -26,13 +26,14 @@
         android:layout_alignParentStart="true"
         android:onClick="getLowLatencyParameters" />
 
-    <TextView android:text="@string/init_status"
+    <TextView
+        android:id="@+id/statusView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:lines="3"
-        android:id="@+id/statusView"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"/>
+        android:lines="3"
+        android:text="@string/init_status" />
 
     <SeekBar
         android:id="@+id/freqSeekBar"
