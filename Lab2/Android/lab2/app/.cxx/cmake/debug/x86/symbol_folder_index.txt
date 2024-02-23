@@ -1,1 +1,1 @@
-C:\Users\flaco\Documents\ClassRepos\ECE420\Lab2\Android\lab2\app\build\intermediates\cmake\debug\obj\x86
+/home/jorgejc2/Documents/ClassRepos/ECE420/Lab2/Android/lab2/app/build/intermediates/cmake/debug/obj/x86

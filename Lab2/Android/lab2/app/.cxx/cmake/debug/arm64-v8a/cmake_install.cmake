@@ -1,8 +1,8 @@
-# Install script for directory: C:/Users/flaco/Documents/ClassRepos/ECE420/Lab2/Android/lab2/app/src/main/cpp
+# Install script for directory: /home/jorgejc2/Documents/ClassRepos/ECE420/Lab2/Android/lab2/app/src/main/cpp
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/Project")
+  set(CMAKE_INSTALL_PREFIX "/usr/local")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -29,7 +29,7 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "0")
+  set(CMAKE_INSTALL_SO_NO_EXE "1")
 endif()
 
 # Is this installation the result of a crosscompile?
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "C:/Users/flaco/Documents/ClassRepos/ECE420/Lab2/Android/lab2/app/.cxx/cmake/debug/arm64-v8a/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/jorgejc2/Documents/ClassRepos/ECE420/Lab2/Android/lab2/app/.cxx/cmake/debug/arm64-v8a/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

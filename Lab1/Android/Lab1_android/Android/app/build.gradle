@@ -18,6 +18,7 @@ android {
     }
     productFlavors {
     }
+    namespace 'com.ece420.lab1'
 }
 
 dependencies {

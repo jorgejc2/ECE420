@@ -16,7 +16,10 @@ int16_t iirFilter(int16_t sample);
 /* global variable holding a mask */
 int16_t lower_mask = 0x00FF;
 
-        void ece420ProcessFrame(sample_buf *dataBuf) {
+void ece420ProcessFrame(sample_buf *dataBuf) {
+    if (dataBuf == nullptr)
+        return;
+
     // Keep in mind, we only have a small amount of time to process each buffer!
     struct timeval start;
     gettimeofday(&start, NULL);
@@ -41,8 +44,8 @@ int16_t lower_mask = 0x00FF;
         // Grab one sample from bufferIn[]
         int16_t sample = bufferIn[sampleIdx];
         // Call your filFilter funcion
-//        int16_t output = firFilter(sample);
-        int16_t output = iirFilter(sample);
+        int16_t output = firFilter(sample);
+//        int16_t output = iirFilter(sample);
         // Grab result and put into bufferOut[]
         bufferOut[sampleIdx] = output;
     }
